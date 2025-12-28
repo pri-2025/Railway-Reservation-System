@@ -17,12 +17,13 @@ public class Main {
 		int choice = 0;
 
 		do {
-			System.out.println("------------Welcome to Railway Reservation Portal-----------");
+			System.out.println();
+			System.out.println("*****************Welcome to Railway Reservation Portal*****************");
 			System.out.println();
 			System.out.println("1. Register"); // first time registration
 			System.out.println("2. Login"); // fetch frm bkend and log in the person
 			System.out.println("3. View Trains"); // enter dates, source, destination and then view trains
-			System.out.println("4. Check availability"); // select the particular train n check avail. on those dates
+			System.out.println("4. Check train availability"); // select the particular train n check avail. on those dates
 			System.out.println("5. Book Tickets"); // have add passenger thingy, and generate final ticket thingy
 			System.out.println("6. Cancel Tickets"); // single or multiple tickets cancellation
 			System.out.println("7. View PNR details"); // check the booking and also display the status if waiting
@@ -30,7 +31,7 @@ public class Main {
 			System.out.println("9. View Profile"); // give option for update profile here
 			System.out.println("10. Exit");
 			System.out.println();
-			System.out.println("Enter your choice : ");
+			System.out.print("Enter your choice : ");
 			choice = sc.nextInt();
 			System.out.println();
 
@@ -48,7 +49,7 @@ public class Main {
 				System.out.println();
 				break;
 			case 4:
-				T.chkAvail();
+				T.chkTrAvail();
 				System.out.println();
 				break;
 			case 5:

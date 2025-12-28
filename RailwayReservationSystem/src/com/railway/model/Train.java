@@ -1,6 +1,7 @@
 package com.railway.model;
 
 public class Train {
+	
 	private int t_id;
 	private String t_name;
 	private String t_source;
@@ -27,6 +28,14 @@ public class Train {
 		return t_id;
 	}
 
+	public String getT_Src() {
+		return t_source;
+	}
+
+	public String getT_Dest() {
+		return t_dest;
+	}
+
 	public int getAvailable_seats() {
 		return avail_seats;
 	}
@@ -39,8 +48,9 @@ public class Train {
 		return fare;
 	}
 
+	@Override
 	public String toString() {
-		return "Train ID: " + t_id + " | Name: " + t_name + " | Route: " + t_source + " -> " + t_dest
-				+ " | Available Seats: " + avail_seats + " | Fare: " + fare;
+		return String.format("%-10d | %-20s | %-28s | Seats: %-4d | Fare: ₹%-7.2f", t_id, t_name,
+				String.format("%-12s → %-12s", t_source, t_dest), avail_seats, fare);
 	}
 }
