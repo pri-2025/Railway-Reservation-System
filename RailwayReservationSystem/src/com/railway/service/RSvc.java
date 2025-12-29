@@ -17,4 +17,9 @@ public class RSvc {
 		
 	}
 
+	public void cancelTicket() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

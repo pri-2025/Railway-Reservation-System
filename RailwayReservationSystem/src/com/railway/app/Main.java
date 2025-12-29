@@ -57,7 +57,7 @@ public class Main {
 				System.out.println();
 				break;
 			case 6:
-				R.bookTicket();
+				R.cancelTicket();
 				System.out.println();
 				break;
 			case 7:
