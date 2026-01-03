@@ -29,6 +29,10 @@ public class Passenger {
 	public long getP_id() {
 		return p_id;
 	}
+	
+	public void setP_id(long pid) {
+        this.p_id = pid;
+    }
 
 	public String getUsername() {
 		return username;
