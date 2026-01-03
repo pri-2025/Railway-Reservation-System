@@ -1,94 +1,69 @@
 package com.railway.service;
 
 import java.util.Scanner;
-
-import com.railway.model.Passenger;
-import com.railway.repo.PRepo;
+import com.railway.model.User;
+import com.railway.repo.URepo;
+import com.railway.session.Session;
 import com.railway.util.PUtil;
 
 public class PSvc {
 
-	PRepo PR = new PRepo();
-	Passenger P = new Passenger();
-
 	Scanner sc = new Scanner(System.in);
+	URepo UR = new URepo();
 
 	public void register() {
-		// TODO Auto-generated method stub
-		System.out.print("Enter Aadhaar ID: ");
-		long pid = sc.nextLong();
-		sc.nextLine();
-		if(!PUtil.aadharVal(pid)) {
-			return;
-		}
 
 		System.out.print("Choose username: ");
 		String username = sc.nextLine();
-
-		System.out.print("Enter name: ");
-		String name = sc.nextLine();
-
-		System.out.print("Enter age: ");
-		int age = sc.nextInt();
-
-		System.out.print("Choose gender (M/F/O): ");
-		char gen = sc.next().charAt(0);
-
-		System.out.print("Enter mobile number: ");
-		long mobNo = sc.nextLong();
-		sc.nextLine();
-		if(!PUtil.mobVal(mobNo)) {
+		if (UR.exists(username)) {
+			System.out.println("Username already exists!");
 			return;
 		}
 
 		System.out.print("Enter email: ");
 		String email = sc.nextLine();
+		if (!PUtil.eVal(email))
+			return;
+
+		System.out.print("Enter mobile: ");
+		long mob = sc.nextLong();
+		sc.nextLine();
+		if (!PUtil.mobVal(mob))
+			return;
 
 		System.out.print("Enter password: ");
 		String pswd = sc.nextLine();
-		if (!PUtil.pswdVal(pswd)) {
-			System.out.println("Invalid password format!");
+		if (!PUtil.pswdVal(pswd))
 			return;
-		}
 
-		Passenger p = new Passenger(pid, username, name, age, gen, mobNo, email, pswd);
-		PR.add(p);
-
-		System.out.println();
+		UR.save(new User(username, pswd, email, mob));
 		System.out.println("Registration successful!");
 	}
 
 	public void login() {
-		// TODO Auto-generated method stub
-		System.out.print("Enter username: ");
-		String uname = sc.nextLine();
 
-		System.out.print("Enter password: ");
-		String pswd = sc.nextLine();
-		
-		boolean found = false;
+	    System.out.print("Username: ");
+	    String uname = sc.nextLine();
 
-		for(Passenger p : PR.getPsgs()) {
-			if(p.getUsername().equals(uname) && p.getPswd().equals(pswd)) {
-				System.out.println();
-				System.out.println("Login successful!");
-				found = true;
-				break;
-			}
-		}
-		
-		if(!found) {
-			System.out.println("Invalid credintials! \nRegister yourself first, if you haven't.");
-		}
-		
+	    System.out.print("Password: ");
+	    String pwd = sc.nextLine();
 
+	    User user = UR.getByUsername(uname);
+
+	    if (user != null && user.getPassword().equals(pwd)) {
+	        Session.currUser = user;   // 🔴 REQUIRED
+	        System.out.println("Login successful!");
+	    } else {
+	        System.out.println("Invalid credentials!");
+	    }
 	}
+
 
 	public void profile() {
-		// TODO Auto-generated method stub
-		for(Passenger p : PR.getPsgs()) {
-			System.out.println(p);
+		if (Session.currUser == null) {
+			System.out.println("Please login first!");
+			return;
 		}
+		System.out.println(Session.currUser);
 	}
-
 }

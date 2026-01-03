@@ -1,13 +1,12 @@
 package com.railway.util;
 
 import com.railway.model.Passenger;
-import com.railway.repo.PRepo;
+import com.railway.repo.URepo;
 import com.railway.service.PSvc;
 
 public class PUtil {
 
-	Passenger P = new Passenger();
-	PRepo PR = new PRepo();
+	URepo PR = new URepo();
 	PSvc PS = new PSvc();
 
 	public static boolean aadharVal(Long pId) {

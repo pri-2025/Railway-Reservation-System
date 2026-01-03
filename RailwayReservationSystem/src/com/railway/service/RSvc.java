@@ -1,25 +1,29 @@
 package com.railway.service;
 
 import java.time.LocalDate;
-import java.util.Scanner;
+import java.util.*;
 
 import com.railway.model.*;
 import com.railway.repo.*;
-import com.railway.util.*;
+import com.railway.session.Session;
+import com.railway.util.RUtil;
 
 public class RSvc {
 
-    RRepo RR = new RRepo();
-    TRepo TR = new TRepo();
-    PRepo PR = new PRepo();
-    RUtil RU = new RUtil();
     Scanner sc = new Scanner(System.in);
+    TRepo TR = new TRepo();
+    BRepo bRepo = new BRepo();
 
     public void bookTicket() {
 
+        if (Session.currUser == null) {
+            System.out.println("Please login first!");
+            return;
+        }
+
         System.out.print("Enter Train ID: ");
         int tid = sc.nextInt();
-        sc.nextLine();
+        System.out.println();
 
         Train t = TR.getTrainById(tid);
         if (t == null) {
@@ -27,96 +31,105 @@ public class RSvc {
             return;
         }
 
-        System.out.print("Enter Username: ");
-        String username = sc.next();
+        System.out.print("Number of passengers: ");
+        int n = sc.nextInt();
+        System.out.println();
 
-        Passenger p = PR.getPsgByUn(username);
-        if (p == null) {
-            System.out.println("Passenger not registered!");
+        List<Passenger> list = new ArrayList<>();
+        for (int i = 1; i <= n; i++) {
+            System.out.println("Passenger " + i);
+            System.out.print("Name: ");
+            String name = sc.nextLine();
+            sc.nextLine();
+            System.out.print("Age: ");
+            int age = sc.nextInt();
+            System.out.print("Gender: ");
+            char g = sc.next().charAt(0);
+            System.out.println();
+
+            list.add(new Passenger(name, age, g));
+        }
+        
+        if (t.getAvailable_seats() < n) {
+            System.out.println("Not enough seats available!");
             return;
         }
 
-        String pnr = RU.generatePNR();
-        LocalDate date = LocalDate.now();
+        t.setAvailable_seats(t.getAvailable_seats() - n);
 
-        Reservation r;
+        String pnr = RUtil.generatePNR();
+        Booking b = new Booking(
+                pnr, t, Session.currUser,
+                list, LocalDate.now(), "CONFIRMED"
+        );
 
-        if (t.getAvailable_seats() > 0) {
-            t.setAvailable_seats(t.getAvailable_seats() - 1);
-            r = new Reservation(pnr, t, p, date, "CONFIRMED");
-            System.out.println("Ticket Confirmed!");
-        } else {
-            r = new Reservation(pnr, t, p, date, "WAITING");
-            RR.waitingList.add(r);
-            System.out.println("Added to Waiting List");
-        }
-
-        RR.saveReservation(r);
-        System.out.println("PNR: " + pnr);
+        bRepo.save(b);
+        System.out.println();
+        System.out.println("Ticket booked!");
+        System.out.println();
+        System.out.println(b);
     }
 
     public void viewBooking() {
-
         System.out.print("Enter PNR: ");
-        String pnr = sc.next().trim();
-
-        Reservation r = RR.getByPnr(pnr);
-        if (r == null) {
+        String pnr = sc.nextLine();
+        sc.nextLine();
+        Booking b = bRepo.getByPnr(pnr);
+        if (b == null) {
             System.out.println("No booking found!");
             return;
         }
-
-        System.out.println(r);
+        System.out.println(b);
     }
 
     public void history() {
-
-        System.out.print("Enter Username: ");
-        String username = sc.next().trim();
-
-        Passenger p = PR.getPsgByUn(username);
-        if (p == null) {
-            System.out.println("Passenger not registered!");
+        if (Session.currUser == null) {
+            System.out.println("Login first!");
             return;
         }
-
-        var list = RR.getHistory(username);
-        
+        var list = bRepo.history(Session.currUser.getUsername());
         if (list.isEmpty()) {
-            System.out.println("No booking history!");
+            System.out.println("No history!");
             return;
         }
-
-        for (Reservation r : list) {
-            System.out.println("----------------------");
-            System.out.println(r);
-        }
+        list.forEach(System.out::println);
     }
 
     public void cancelTicket() {
 
-        System.out.print("Enter PNR to cancel: ");
-        String pnr = sc.next().trim();
+        if (Session.currUser == null) {
+            System.out.println("Please login first!");
+            return;
+        }
 
-        Reservation r = RR.getByPnr(pnr);
-        if (r == null) {
+        System.out.print("Enter PNR to cancel: ");
+        String pnr = sc.nextLine();
+
+        Booking b = bRepo.getByPnr(pnr);
+
+        if (b == null) {
             System.out.println("Invalid PNR!");
             return;
         }
 
-        r.setStatus("CANCELLED");
-        RR.remove(pnr);
-
-        Train t = r.getTrain();
-        t.setAvailable_seats(t.getAvailable_seats() + 1);
-
-        if (!RR.waitingList.isEmpty()) {
-            Reservation next = RR.waitingList.poll();
-            next.setStatus("CONFIRMED");
-            t.setAvailable_seats(t.getAvailable_seats() - 1);
-            System.out.println("Waiting ticket promoted: " + next.getPnr());
+        // Security check (VERY IMPORTANT)
+        if (!b.getUser().getUsername()
+                .equals(Session.currUser.getUsername())) {
+            System.out.println("You cannot cancel someone else's ticket!");
+            return;
         }
 
-        System.out.println("Ticket Cancelled Successfully");
+        b.setStatus("CANCELLED");
+
+        // Restore seats
+        Train t = b.getTrain();
+        t.setAvailable_seats(
+            t.getAvailable_seats() + b.getPassengers().size()
+        );
+
+        bRepo.remove(pnr);
+
+        System.out.println("Ticket cancelled successfully!");
     }
+
 }
